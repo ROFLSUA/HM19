@@ -1,78 +1,195 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Оформлення замовлення</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Інтернет-магазин</title>
 </head>
 <body>
-    <button id="buyButton">Купити</button>
-    <div id="orderForm" class="hidden">
-        <h2>Форма оформлення замовлення</h2>
-        <form id="orderForm">
-            <label for="fullName">ПІБ покупця:</label>
-            <input type="text" id="fullName" required><br><br>
+    <div class="container">
+        <div class="categories">
+            <h2>Категорії</h2>
+            <ul id="category-list"></ul>
+        </div>
+        <div class="products">
+            <h2>Список товарів</h2>
+            <ul id="product-list">
+            </ul>
+        </div>
+        <div class="product-details">
+            <h2>Інформація про товар</h2>
+            <div id="product-info">
+            </div>
+            <div class="order-form">
+                <h3>Форма замовлення</h3>
+                <form id="order-form">
+                    <label for="name">ПІБ покупця:</label>
+                    <input type="text" id="name" required>
 
-            <label for="city">Місто:</label>
-            <select id="city" required>
-                <option value="Київ">Київ</option>
-                <option value="Львів">Львів</option>
-                <option value="Одеса">Одеса</option>
-            </select><br><br>
+                    <label for="city">Місто:</label>
+                    <select id="city" required>
+                        <option value="Київ">Київ</option>
+                        <option value="Львів">Львів</option>
+                        <option value="Одеса">Одеса</option>
 
-            <label for="novaPoshta">Склад Нової пошти:</label>
-            <input type="text" id="novaPoshta" required><br><br>
+                    </select>
+                    <label for="post-office">Склад Нової пошти:</label>
+                    <input type="text" id="post-office" required>
+                    <label for="payment-method">Спосіб оплати:</label>
+                    <input type="radio" id="cash-on-delivery" name="payment-method" value="Післяплата" required>
+                    <label for="cash-on-delivery">Післяплата</label>
+                    <input type="radio" id="credit-card" name="payment-method" value="Банківська карта" required>
+                    <label for="credit-card">Банківська карта</label>
 
-            <label for="paymentMethod">Спосіб оплати:</label>
-            <input type="radio" id="cashOnDelivery" name="paymentMethod" value="Післяплати" required>Післяплати
-            <input type="radio" id="creditCard" name="paymentMethod" value="Банківська карта" required>Банківська карта<br><br>
+                    <label for="quantity">Кількість продукції:</label>
+                    <input type="number" id="quantity" min="1" required>
 
-            <label for="quantity">Кількість продукції:</label>
-            <input type="number" id="quantity" required><br><br>
+                    <label for="comment">Коментар до замовлення:</label>
+                    <textarea id="comment" rows="4"></textarea>
 
-            <label for="comment">Коментар до замовлення:</label>
-            <textarea id="comment"></textarea><br><br>
-
-            <input type="submit" value="Підтвердити замовлення">
-        </form>
-    </div>
-    <div id="orderInfo" class="hidden">
-        <h2>Інформація про замовлення</h2>
-        <div id="productInfo"></div>
-        <div id="deliveryInfo"></div>
+                    <button type="submit">Підтвердити замовлення</button>
+                </form>
+                <p id="error-message" class="error-message"></p>
+            </div>
+        </div>
     </div>
     <style>
-        .hidden {
-    display: none;
+        body {
+    font-family: Arial, sans-serif;
 }
+
+.container {
+    display: flex;
+}
+
+.categories, .products, .product-details {
+    padding: 20px;
+    border: 1px solid #ccc;
+    margin: 10px;
+}
+
+.categories {
+    width: 20%;
+}
+
+.products {
+    width: 40%;
+}
+
+.product-details {
+    width: 35%;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    cursor: pointer;
+}
+
+.error-message {
+    color: red;
+    font-weight: bold;
+}
+
     </style>
     <script>
-document.getElementById('buyButton').addEventListener('click', function() {
-    document.getElementById('orderForm').classList.remove('hidden');
-});
+const productsData = {
+    Електроніка: [
+        { id: 1, name: 'Смартфон', price: 1100 },
+        { id: 2, name: 'Планшет', price: 1600 },
+    ],
+    Одяг: [
+        { id: 3, name: 'Светер', price: 35 },
+        { id: 4, name: 'Джинси', price: 60 },
+    ],
+    Книги: [
+        { id: 5, name: 'Роман', price: 20 },
+        { id: 6, name: 'Книга', price: 13 },
+    ],
+};
 
-document.getElementById('orderForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    
-    // Перевірка обов'язкових полів
-    var fullName = document.getElementById('fullName').value;
-    var city = document.getElementById('city').value;
-    var novaPoshta = document.getElementById('novaPoshta').value;
-    var paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
-    var quantity = document.getElementById('quantity').value;
+document.addEventListener('DOMContentLoaded', () => {
+    const categoryList = document.getElementById('category-list');
+    const productList = document.getElementById('product-list');
+    const productInfo = document.getElementById('product-info');
+    const orderForm = document.getElementById('order-form');
+    const errorMessage = document.getElementById('error-message');
 
-    if (!fullName || !city || !novaPoshta || !paymentMethod || !quantity) {
-        alert('Будь ласка, заповніть всі обов\'язкові поля.');
-        return;
+    for (const category in productsData) {
+        const categoryItem = document.createElement('li');
+        categoryItem.textContent = category;
+        categoryItem.addEventListener('click', () => {
+            displayProducts(category);
+        });
+        categoryList.appendChild(categoryItem);
     }
 
-    // Виведення інформації про замовлення
-    var productInfo = "Інформація про товар: (Смартфон. Ціна 1100$)";
-    var deliveryInfo = "Інформація про доставку:\nПІБ покупця: " + fullName + "\nМісто: " + city + "\nСклад Нової пошти: " + novaPoshta + "\nСпосіб оплати: " + paymentMethod.value + "\nКількість продукції: " + quantity + "\nКоментар: " + document.getElementById('comment').value;
+    function displayProducts(category) {
+        productList.innerHTML = '';
+        productInfo.innerHTML = '';
+        errorMessage.textContent = '';
 
-    document.getElementById('productInfo').textContent = productInfo;
-    document.getElementById('deliveryInfo').textContent = deliveryInfo;
-    
-    // Відображення інформації про замовлення
-    document.getElementById('orderInfo').classList.remove('hidden');
+        const products = productsData[category];
+        products.forEach(product => {
+            const productItem = document.createElement('li');
+            productItem.textContent = `${product.name} - ${product.price} грн`;
+            productItem.addEventListener('click', () => {
+                displayProductInfo(product);
+            });
+            productList.appendChild(productItem);
+        });
+    }
+
+    function displayProductInfo(product) {
+        productInfo.innerHTML = `
+            <p>ID товару: ${product.id}</p>
+            <p>Назва: ${product.name}</p>
+            <p>Ціна: ${product.price} грн</p>
+            <button id="buy-button">Купити</button>
+        `;
+
+        const buyButton = document.getElementById('buy-button');
+        buyButton.addEventListener('click', () => {
+            showOrderForm(product);
+        });
+    }
+
+    function showOrderForm(product) {
+        productInfo.innerHTML = '';
+        orderForm.style.display = 'block';
+
+        orderForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const city = document.getElementById('city').value;
+            const postOffice = document.getElementById('post-office').value;
+            const paymentMethod = document.querySelector('input[name="payment-method"]:checked');
+            const quantity = document.getElementById('quantity').value;
+            const comment = document.getElementById('comment').value;
+
+            if (!name || !city || !postOffice || !paymentMethod || !quantity) {
+                errorMessage.textContent = 'Будь ласка, заповніть всі поля.';
+            } else {
+                const orderDetails = `
+                    <h3>Деталі замовлення:</h3>
+                    <p>Товар: ${product.name}</p>
+                    <p>Ціна: ${product.price} грн</p>
+                    <p>ПІБ покупця: ${name}</p>
+                    <p>Місто: ${city}</p>
+                    <p>Склад Нової пошти: ${postOffice}</p>
+                    <p>Спосіб оплати: ${paymentMethod.value}</p>
+                    <p>Кількість: ${quantity}</p>
+                    <p>Коментар: ${comment}</p>
+                `;
+                productInfo.innerHTML = orderDetails;
+                orderForm.style.display = 'none';
+            }
+        });
+    }
 });
     </script>
 </body>
